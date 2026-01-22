@@ -10,6 +10,11 @@ struct Tensor4D {
     Tensor4D(unsigned int const shape_[4], T const *data_) {
         unsigned int size = 1;
         // TODO: 填入正确的 shape 并计算 size
+        // 复制shape数组，并计算总元素数（4个维度的乘积）
+        for (int d = 0; d < 4; ++d) {
+            shape[d] = shape_[d];
+            size *= shape[d];
+        }
         data = new T[size];
         std::memcpy(data, data_, size * sizeof(T));
     }
@@ -28,6 +33,45 @@ struct Tensor4D {
     // 则 `this` 与 `others` 相加时，3 个形状为 `[1, 2, 1, 4]` 的子张量各自与 `others` 对应项相加。
     Tensor4D &operator+=(Tensor4D const &others) {
         // TODO: 实现单向广播的加法
+        // 1. 校验广播合法性：others的每个维度要么等于1，要么等于当前张量的对应维度
+        for (int d = 0; d < 4; ++d) {
+            ASSERT(others.shape[d] == 1 || others.shape[d] == shape[d], 
+                   "Broadcast shape mismatch: dimension " << d);
+        }
+
+        // 2. 计算当前张量的总元素数
+        unsigned int total_elements = 1;
+        for (int d = 0; d < 4; ++d) {
+            total_elements *= shape[d];
+        }
+
+        // 3. 遍历当前张量的每个元素，执行广播加法
+        for (unsigned int linear_idx = 0; linear_idx < total_elements; ++linear_idx) {
+            // 3.1 将线性索引转换为4D坐标 (dim0, dim1, dim2, dim3)
+            unsigned int coord[4];
+            unsigned int temp = linear_idx;
+            coord[3] = temp % shape[3]; temp /= shape[3];
+            coord[2] = temp % shape[2]; temp /= shape[2];
+            coord[1] = temp % shape[1]; temp /= shape[1];
+            coord[0] = temp % shape[0];
+
+            // 3.2 计算others的对应4D坐标（广播维度取0）
+            unsigned int o_coord[4];
+            for (int d = 0; d < 4; ++d) {
+                o_coord[d] = (others.shape[d] == 1) ? 0 : coord[d];
+            }
+
+            // 3.3 将others的4D坐标转换为线性索引
+            unsigned int o_linear_idx = 0;
+            o_linear_idx = o_linear_idx * others.shape[0] + o_coord[0];
+            o_linear_idx = o_linear_idx * others.shape[1] + o_coord[1];
+            o_linear_idx = o_linear_idx * others.shape[2] + o_coord[2];
+            o_linear_idx = o_linear_idx * others.shape[3] + o_coord[3];
+
+            // 3.4 执行广播加法
+            data[linear_idx] += others.data[o_linear_idx];
+        }
+
         return *this;
     }
 };

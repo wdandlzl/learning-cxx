@@ -1,13 +1,6 @@
 ﻿#include "../exercise.h"
 #include <vector>
 
-// 张量即多维数组。连续存储张量即逻辑结构与存储结构一致的张量。
-// 通常来说，形状为 [d0, d1, ..., dn] 的张量，第 n 维是 dn 个连续的元素，第 n-1 维是 dn-1 个连续的 dn 个元素，以此类推。
-// 张量的步长或跨度指的是张量每个维度上坐标 +1 时，数据指针跨过的范围。
-// 因此，一个连续张量，其第 n 维的步长为 1，第 n-1 维的步长为 dn，第 n-2 维的步长为 dn*dn-1，以此类推。
-// 例如，一个 2x3x4 张量，其步长为 [12, 4, 1]。
-
-// READ: 类型别名 <https://zh.cppreference.com/w/cpp/language/type_alias>
 using udim = unsigned int;
 
 /// @brief 计算连续存储张量的步长
@@ -15,9 +8,15 @@ using udim = unsigned int;
 /// @return 张量每维度的访问步长
 std::vector<udim> strides(std::vector<udim> const &shape) {
     std::vector<udim> strides(shape.size());
-    // TODO: 完成函数体，根据张量形状计算张量连续存储时的步长。
-    // READ: 逆向迭代器 std::vector::rbegin <https://zh.cppreference.com/w/cpp/container/vector/rbegin>
-    //       使用逆向迭代器可能可以简化代码
+    udim current_stride = 1; // 最后一维的步长固定为1
+    
+    // 修复：拆分auto声明，分别推导两个迭代器（解决const/非const类型不一致问题）
+    auto shape_it = shape.rbegin();
+    auto stride_it = strides.rbegin();
+    for (; shape_it != shape.rend() && stride_it != strides.rend(); ++shape_it, ++stride_it) {
+        *stride_it = current_stride;       // 给当前维度赋值步长
+        current_stride *= *shape_it;       // 计算前一维的步长（当前步长 × 当前维度长度）
+    }
     return strides;
 }
 

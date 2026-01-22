@@ -1,17 +1,21 @@
 ﻿#include "../exercise.h"
 #include <map>
+// 补充string头文件（使用std::string时需要）
+#include <string>
 
 // READ: `std::map` <https://zh.cppreference.com/w/cpp/container/map>
 // READ: `std::unordered_map` <https://zh.cppreference.com/w/cpp/container/unordered_map>
 
 template<class k, class v>
 bool key_exists(std::map<k, v> const &map, k const &key) {
-    // TODO: 实现函数
+    // TODO: 实现函数：判断key是否存在，利用find返回迭代器是否等于end()
+    return map.find(key) != map.end();
 }
 
 template<class k, class v>
 void set(std::map<k, v> &map, k key, v value) {
-    // TODO: 实现函数
+    // TODO: 实现函数：设置键值对（存在则覆盖，不存在则插入）
+    map[key] = value;
 }
 
 // ---- 不要修改以下代码 ----
